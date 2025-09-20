@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Colors Game</title>
+    <style>
+        @font-face {
+            font-family: 'Stencil';
+            src: url('https://fonts.cdnfonts.com/css/stencil') format('woff2');
+        }
+        
+        * {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            color: white;
+            font-family: 'Stencil', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            height: -webkit-fill-available;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            touch-action: manipulation;
+        }
+        
+        .star {
+            position: absolute;
+            width: 1.5px;
+            height: 1.5px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.5s linear, opacity 0.5s ease;
+        }
+        
+        .star.fast {
+            transition: transform 0.1s linear;
+        }
+        
+        .title {
+            font-size: clamp(3rem, 12vw, 5rem);
+            margin: 0;
+            text-align: center;
+            text-shadow: 3px 3px 0 #000;
+            letter-spacing: 2px;
+            position: absolute;
+            top: 30%;
+            transform: translateY(-50%);
+            width: 100%;
+            padding: 0 10px;
+            box-sizing: border-box;
+            transition: color 0.3s ease;
+        }
+        
+        .title span {
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+        
+        .title.shaking span {
+            animation: shake 0.2s infinite alternate;
+        }
+        
+        @keyframes shake {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(-3px) rotate(1deg); }
+        }
+        
+        .title.zoom span {
+            animation: zoom 0.5s ease;
+        }
+        
+        @keyframes zoom {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        .colors-container {
+            display: flex;
+            gap: 10px;
+            position: absolute;
+            bottom: 15%;
+            width: 90%;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .color-box {
+            width: clamp(40px, 15vw, 60px);
+            height: clamp(40px, 15vw, 60px);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            border: 2px solid #000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            flex-shrink: 0;
+            transform-style: preserve-3d;
+            position: relative;
+        }
+        
+        .color-box:active {
+            transform: scale(0.95) rotateX(15deg) rotateY(15deg);
+        }
+        
+        .color-explosion {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: colorExplode 0.6s ease-out forwards;
+            z-index: 4;
+            opacity: 0;
+        }
+        
+        @keyframes colorExplode {
+            0% { transform: scale(0.1); opacity: 1; }
+            70% { opacity: 0.7; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        
+        .start-btn {
+            background-color: rgba(255, 215, 0, 0.3);
+            color: gold;
+            border: 2px solid gold;
+            padding: 12px 40px;
+            font-size: clamp(1.5rem, 6vw, 2rem);
+            border-radius: 15px;
+            transition: all 0.3s;
+            font-family: 'Stencil', sans-serif;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-shadow: 2px 2px 0 #000;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            width: auto;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        
+        .start-btn:active {
+            background-color: rgba(255, 215, 0, 0.4);
+            transform: translate(-50%, calc(-50% + 2px));
+        }
+        
+        .player-input {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            display: none;
+            z-index: 20;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid gold;
+        }
+        
+        .player-input input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid gold;
+            border-radius: 10px;
+            padding: 12px 20px;
+            color: white;
+            font-family: 'Stencil', sans-serif;
+            font-size: 1.2rem;
+            text-align: center;
+            width: 200px;
+            margin-bottom: 15px;
+        }
+        
+        .player-input button {
+            background-color: rgba(255, 215, 0, 0.3);
+            color: gold;
+            border: 2px solid gold;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-family: 'Stencil', sans-serif;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .main-menu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            display: none;
+            z-index: 20;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid gold;
+        }
+        
+        .main-menu h2 {
+            color: gold;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 0 #000;
+        }
+        
+        .main-menu-btn {
+            background-color: rgba(255, 215, 0, 0.3);
+            color: gold;
+            border: 2px solid gold;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-family: 'Stencil', sans-serif;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 1.2rem;
+            width: 200px;
+        }
+        
+        .main-menu-btn:active {
+            background-color: rgba(255, 215, 0, 0.4);
+        }
+        
+        .rating-btn {
+            background-color: rgba(100, 100, 255, 0.3);
+            border-color: #3498db;
+            color: #3498db;
+        }
+        
+        .timer {
+            position: absolute;
+            top: 5%;
+            right: 5%;
+            font-size: clamp(1.5rem, 6vw, 2rem);
+            color: gold;
+            text-shadow: 2px 2px 0 #000;
+        }
+        
+        .score {
+            position: absolute;
+            top: 5%;
+            left: 5%;
+            font-size: clamp(1.5rem, 6vw, 2rem);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: gold;
+            text-shadow: 2px 2px 0 #000;
+        }
+        
+        .ranking {
+            position: absolute;
+            top: 15%;
+            right: 5%;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: gold;
+            font-size: clamp(1rem, 4vw, 1.2rem);
+        }
+        
+        .trophy {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(45deg, #ffd700, #ffed4e, #ffd700);
+            border-radius: 50%;
+            border: 2px solid #000;
+            box-shadow: 0 0 0 2px #ffd700;
+            position: relative;
+        }
+        
+        .trophy:before {
+            content: "🏆";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 16px;
+        }
+        
+        .medal {
+            width: clamp(30px, 8vw, 40px);
+            height: clamp(30px, 8vw, 40px);
+            background-color: gold;
+            border-radius: 50%;
+            border: 2px solid #000;
+            box-shadow: 0 0 0 1px #fff, 0 0 0 2px #000;
+            position: relative;
+            flex-shrink: 0;
+        }
+        
+        .medal:before {
+            content: "1";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: clamp(1rem, 4vw, 1.5rem);
+            color: #000;
+            font-weight: bold;
+        }
+        
+        .message {
+            position: absolute;
+            font-size: clamp(3rem, 15vw, 6rem);
+            font-weight: bold;
+            z-index: 10;
+            text-shadow: 3px 3px 0 #000;
+            color: white;
+            text-align: center;
+            animation: zoomIn 0.5s forwards;
+            width: 100%;
+            padding: 0 10px;
+            box-sizing: border-box;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .message span {
+            display: inline-block;
+        }
+        
+        .rating-window {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            border: 3px solid gold;
+            border-radius: 15px;
+            padding: 20px;
+            z-index: 30;
+            display: none;
+            width: 300px;
+            max-width: 90%;
+        }
+        
+        .rating-window h3 {
+            color: gold;
+            text-align: center;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 0 #000;
+        }
+        
+        .rating-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .rating-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 5px;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+        }
+        
+        .rating-item:last-child {
+            border-bottom: none;
+        }
+        
+        .rating-position {
+            color: gold;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .rating-name {
+            flex-grow: 1;
+            text-align: left;
+        }
+        
+        .rating-score {
+            color: #2ecc71;
+            font-weight: bold;
+        }
+        
+        .close-rating {
+            background-color: rgba(255, 215, 0, 0.3);
+            color: gold;
+            border: 2px solid gold;
+            padding: 8px 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+            width: 100%;
+            cursor: pointer;
+        }
+        
+        @keyframes zoomIn {
+            from { transform: translate(-50%, -50%) scale(0.1); opacity: 0; }
+            to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+        
+        .firework {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: explode 1s forwards;
+            z-index: 5;
+        }
+        
+        @keyframes explode {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(15); opacity: 0; }
+        }
+        
+        .skull {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="white" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm-5-9h10v2H7zm5 3c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>');
+            background-size: contain;
+            pointer-events: none;
+            animation: fall 2s linear forwards;
+            z-index: 5;
+        }
+        
+        @keyframes fall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+            70% { transform: translateY(calc(100vh - 50px)) rotate(360deg); opacity: 1; }
+            100% { transform: translateY(calc(100vh - 30px)) rotate(360deg); opacity: 0; }
+        }
+        
+        .explosion {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="white" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/></svg>');
+            background-size: contain;
+            pointer-events: none;
+            animation: explode-skull 0.4s forwards;
+            z-index: 5;
+        }
+        
+        @keyframes explode-skull {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(4); opacity: 0; }
+        }
+        
+        @media (max-height: 700px) {
+            .title {
+                top: 25%;
+                font-size: clamp(2.5rem, 10vw, 4rem);
+            }
+            
+            .start-btn {
+                top: 50%;
+                padding: 10px 30px;
+            }
+            
+            .colors-container {
+                bottom: 10%;
+            }
+        }
+        
+        @media (max-height: 500px) {
+            .title {
+                top: 20%;
+                font-size: clamp(2rem, 8vw, 3rem);
+            }
+            
+            .start-btn {
+                top: 50%;
+                padding: 8px 25px;
+                font-size: clamp(1.2rem, 5vw, 1.5rem);
+            }
+            
+            .colors-container {
+                bottom: 5%;
+                gap: 5px;
+            }
+            
+            .color-box {
+                width: clamp(30px, 12vw, 50px);
+                height: clamp(30px, 12vw, 50px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1 class="title shaking" id="title">COLORS</h1>
+    
+    <button class="start-btn" id="new-player-btn">НОВЫЙ ИГРОК</button>
+    
+    <div class="player-input" id="player-input">
+        <input type="text" id="player-name" placeholder="Введите имя (до 6 символов)" maxlength="6">
+        <div>
+            <button id="save-player-btn">СОХРАНИТЬ</button>
+            <button id="cancel-player-btn">ОТМЕНА</button>
+        </div>
+    </div>
+    
+    <div class="main-menu" id="main-menu">
+        <h2>ГЛАВНОЕ МЕНЮ</h2>
+        <button class="main-menu-btn" id="start-game-btn">START</button>
+        <button class="main-menu-btn rating-btn" id="show-rating-btn">РЕЙТИНГ</button>
+        <button class="main-menu-btn" id="change-player-btn">СМЕНИТЬ ИГРОКА</button>
+    </div>
+    
+    <div class="rating-window" id="rating-window">
+        <h3>ТОП-5 ИГРОКОВ</h3>
+        <ul class="rating-list" id="rating-list"></ul>
+        <button class="close-rating" id="close-rating-btn">ЗАКРЫТЬ</button>
+    </div>
+    
+    <div class="score">
+        <div class="medal"></div>
+        <span id="score">0</span>
+    </div>
+    
+    <div class="ranking" id="ranking" style="display: none;">
+        <div class="trophy"></div>
+        <span id="rank">#0</span>
+    </div>
+    
+    <div class="timer" id="timer">5.0</div>
+    <div class="colors-container" id="colors-container"></div>
+
+    <script>
+        // Базовая палитра цветов
+        const baseColors = {
+            green: {color: '#2ecc71', name: 'GREEN'},
+            blue: {color: '#3498db', name: 'BLUE'},
+            red: {color: '#e74c3c', name: 'RED'},
+            orange: {color: '#e67e22', name: 'ORANGE'},
+            purple: {color: '#9b59b6', name: 'PURPLE'},
+            yellow: {color: '#f1c40f', name: 'YELLOW'}
+        };
+        
+        let allColors = {...baseColors};
+        let colorNames = Object.keys(baseColors);
+        let currentColor = '';
+        let score = 0;
+        let gameInterval;
+        let timeLeft = 5;
+        let gameActive = false;
+        let colorInterval;
+        let stars = [];
+        let colorBoxes = [];
+        let lastMilestone = 0;
+        let currentPlayer = null;
+        
+        // База данных игроков
+        let playersDB = JSON.parse(localStorage.getItem('colorsGamePlayers')) || [];
+        
+        // DOM элементы
+        const title = document.getElementById('title');
+        const colorsContainer = document.getElementById('colors-container');
+        const newPlayerBtn = document.getElementById('new-player-btn');
+        const playerInput = document.getElementById('player-input');
+        const playerNameInput = document.getElementById('player-name');
+        const savePlayerBtn = document.getElementById('save-player-btn');
+        const cancelPlayerBtn = document.getElementById('cancel-player-btn');
+        const mainMenu = document.getElementById('main-menu');
+        const startGameBtn = document.getElementById('start-game-btn');
+        const showRatingBtn = document.getElementById('show-rating-btn');
+        const changePlayerBtn = document.getElementById('change-player-btn');
+        const ratingWindow = document.getElementById('rating-window');
+        const ratingList = document.getElementById('rating-list');
+        const closeRatingBtn = document.getElementById('close-rating-btn');
+        const timer = document.getElementById('timer');
+        const scoreDisplay = document.getElementById('score');
+        const ranking = document.getElementById('ranking');
+        const rankDisplay = document.getElementById('rank');
+        
+        // Сохранение базы данных игроков
+        function savePlayersDB() {
+            localStorage.setItem('colorsGamePlayers', JSON.stringify(playersDB));
+        }
+        
+        // Поиск игрока по имени
+        function findPlayerByName(name) {
+            return playersDB.find(player => player.name.toLowerCase() === name.toLowerCase());
+        }
+        
+        // Добавление нового игрока
+        function addNewPlayer(name) {
+            const newPlayer = {
+                id: 'player_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+                name: name,
+                bestScore: 0,
+                totalGames: 0,
+                totalAttempts: 0,
+                lastPlayed: new Date().toISOString()
+            };
+            
+            playersDB.push(newPlayer);
+            savePlayersDB();
+            return newPlayer;
+        }
+        
+        // Обновление статистики игрока
+        function updatePlayerStats(score) {
+            if (!currentPlayer) return;
+            
+            const player = findPlayerByName(currentPlayer.name);
+            if (player) {
+                player.totalAttempts++;
+                player.totalGames++;
+                player.lastPlayed = new Date().toISOString();
+                
+                if (score > player.bestScore) {
+                    player.bestScore = score;
+                }
+                
+                savePlayersDB();
+            }
+        }
+        
+        // Получение топа игроков
+        function getTopPlayers() {
+            return playersDB
+                .sort((a, b) => b.bestScore - a.bestScore || b.totalGames - a.totalGames)
+                .slice(0, 5);
+        }
+        
+        // Показ рейтинга
+        function showRating() {
+            ratingList.innerHTML = '';
+            const topPlayers = getTopPlayers();
+            
+            if (topPlayers.length === 0) {
+                ratingList.innerHTML = '<li class="rating-item">Нет данных</li>';
+            } else {
+                topPlayers.forEach((player, index) => {
+                    const item = document.createElement('li');
+                    item.className = 'rating-item';
+                    item.innerHTML = `
+                        <span class="rating-position">${index + 1}.</span>
+                        <span class="rating-name">${player.name}</span>
+                        <span class="rating-score">${player.bestScore}</span>
+                    `;
+                    ratingList.appendChild(item);
+                });
+            }
+            
+            ratingWindow.style.display = 'block';
+        }
+        
+        // Валидация имени игрока
+        function validatePlayerName(name) {
+            if (!name || name.trim().length === 0) return false;
+            if (name.length > 6) return false;
+            const forbiddenChars = /[<>()\[\]{}_]/;
+            return !forbiddenChars.test(name);
+        }
+        
+        // Создание звездного фона
+        function createStars() {
+            const starsCount = 100;
+            for (let i = 0; i < starsCount; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.opacity = Math.random() * 0.8 + 0.2;
+                document.body.appendChild(star);
+                stars.push({
+                    element: star,
+                    x: Math.random() * 2 - 1,
+                    y: Math.random() * 2 - 1,
+                    speed: Math.random() * 0.5 + 0.1
+                });
+            }
+        }
+        
+        // Функция для ускорения звезд
+        function accelerateStars(duration) {
+            stars.forEach(star => {
+                star.element.classList.add('fast');
+                star.x = (Math.random() * 4 - 2) * 3;
+                star.y = (Math.random() * 4 - 2) * 3;
+                star.speed = Math.random() * 2 + 1;
+            });
+            
+            setTimeout(() => {
+                stars.forEach(star => {
+                    star.element.classList.remove('fast');
+                    star.x = Math.random() * 2 - 1;
+                    star.y = Math.random() * 2 - 1;
+                    star.speed = Math.random() * 0.5 + 0.1;
+                });
+            }, duration);
+        }
+        
+        // Анимация звезд
+        function animateStars() {
+            stars.forEach(star => {
+                const x = parseFloat(star.element.style.left) + star.x * star.speed;
+                const y = parseFloat(star.element.style.top) + star.y * star.speed;
+                
+                star.element.style.left = `${(x + 100) % 100}%`;
+                star.element.style.top = `${(y + 100) % 100}%`;
+                
+                if (Math.random() < 0.01) {
+                    star.x = Math.random() * 2 - 1;
+                    star.y = Math.random() * 2 - 1;
+                }
+            });
+            requestAnimationFrame(animateStars);
+        }
+        
+        // Проверка на достижение уровней-вех
+        function checkMilestone(newScore) {
+            const milestones = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
+            const milestone = milestones.find(m => newScore >= m && lastMilestone < m);
+            
+            if (milestone) {
+                lastMilestone = milestone;
+                accelerateStars(1000);
+            }
+        }
+        
+        // Анимация смены цветов букв
+        function animateTitleColors() {
+            const colors = Object.values(baseColors).map(c => c.color);
+            title.style.color = colors[Math.floor(Math.random() * colors.length)];
+        }
+        
+        // Функция для перемешивания цветов
+        function shuffleColorsWithoutAdjacentDuplicates() {
+            let shuffled = [...colorNames];
+            let attempts = 0;
+            let hasAdjacentDuplicates = true;
+            
+            while (hasAdjacentDuplicates && attempts < 100) {
+                for (let i = shuffled.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                }
+                
+                hasAdjacentDuplicates = false;
+                for (let i = 0; i < shuffled.length - 1; i++) {
+                    if (shuffled[i] === shuffled[i + 1]) {
+                        hasAdjacentDuplicates = true;
+                        break;
+                    }
+                }
+                
+                attempts++;
+            }
+            
+            return shuffled;
+        }
+        
+        // Создание цветных квадратов
+        function createColorBoxes() {
+            colorsContainer.innerHTML = '';
+            colorBoxes = [];
+            
+            let colorsArray = shuffleColorsWithoutAdjacentDuplicates();
+            
+            for (const color of colorsArray) {
+                const box = document.createElement('div');
+                box.className = 'color-box';
+                box.style.backgroundColor = allColors[color].color;
+                box.dataset.color = color;
+                box.addEventListener('click', handleColorClick);
+                box.style.transform = `translate(${Math.random() * 20 - 10}px, ${Math.random() * 20 - 10}px) rotate(${Math.random() * 10 - 5}deg)`;
+                colorsContainer.appendChild(box);
+                colorBoxes.push(box);
+            }
+        }
+        
+        // Анимация взрыва цвета
+        function createColorExplosion(x, y, color) {
+            const explosion = document.createElement('div');
+            explosion.className = 'color-explosion';
+            explosion.style.left = `${x}px`;
+            explosion.style.top = `${y}px`;
+            explosion.style.background = `radial-gradient(circle, ${color} 0%, transparent 70%)`;
+            document.body.appendChild(explosion);
+            
+            setTimeout(() => {
+                explosion.remove();
+            }, 600);
+        }
+        
+        // Анимация нажатия на квадрат
+        function animateBoxClick(box) {
+            const randomX = Math.random() * 30 - 15;
+            const randomY = Math.random() * 30 - 15;
+            const randomRotate = Math.random() * 20 - 10;
+            
+            box.style.transition = 'all 0.3s ease';
+            box.style.transform = `translate(${randomX}px, ${randomY}px) rotate(${randomRotate}deg) scale(0.95)`;
+            
+            setTimeout(() => {
+                box.style.transform = 'translate(0, 0) rotate(0deg) scale(1)';
+            }, 300);
+        }
+        
+        // Начало игры
+        function startGame() {
+            mainMenu.style.display = 'none';
+            gameActive = true;
+            score = 0;
+            lastMilestone = 0;
+            timeLeft = 5;
+            updateScore();
+            updateRanking();
+            
+            title.classList.remove('shaking');
+            clearInterval(colorInterval);
+            
+            createColorBoxes();
+            nextRound();
+            
+            gameInterval = setInterval(() => {
+                timeLeft -= 0.1;
+                timer.textContent = timeLeft.toFixed(1);
+                
+                if (timeLeft <= 0) {
+                    endGame(false);
+                }
+            }, 100);
+        }
+        
+        // Следующий раунд
+        function nextRound() {
+            const randomIndex = Math.floor(Math.random() * colorNames.length);
+            currentColor = colorNames[randomIndex];
+            
+            const colorData = allColors[currentColor];
+            title.textContent = colorData.name;
+            title.style.color = colorData.color;
+            
+            createColorBoxes();
+            
+            timeLeft = getTimeLimit();
+            timer.textContent = timeLeft.toFixed(1);
+        }
+        
+        // Получение лимита времени
+        function getTimeLimit() {
+            if (score >= 45) return 1.5;
+            if (score >= 30) return 2;
+            if (score >= 20) return 2.5;
+            if (score >= 10) return 3;
+            return 5;
+        }
+        
+        // Обработка клика по цвету
+        function handleColorClick(e) {
+            if (!gameActive) return;
+            
+            const selectedColor = e.target.dataset.color;
+            const rect = e.target.getBoundingClientRect();
+            const x = rect.left + rect.width / 2;
+            const y = rect.top + rect.height / 2;
+            
+            animateBoxClick(e.target);
+            
+            if (selectedColor === currentColor) {
+                score++;
+                updateScore();
+                updateRanking();
+                checkMilestone(score);
+                
+                createColorExplosion(x, y, allColors[currentColor].color);
+                
+                title.classList.add('zoom');
+                setTimeout(() => {
+                    title.classList.remove('zoom');
+                }, 500);
+                
+                if (score % 5 === 0) {
+                    showMedal();
+                }
+                
+                if (score >= 50) {
+                    endGame(true);
+                } else {
+                    nextRound();
+                }
+            } else {
+                endGame(false);
+            }
+        }
+        
+        // Обновление счета
+        function updateScore() {
+            scoreDisplay.textContent = score;
+        }
+        
+        // Обновление рейтинга
+        function updateRanking() {
+            const rank = Math.floor(score / 10) + 1;
+            rankDisplay.textContent = `#${rank}`;
+            ranking.style.display = 'flex';
+        }
+        
+        // Показ медали
+        function showMedal() {
+            const medal = document.querySelector('.medal');
+            medal.style.animation = 'none';
+            void medal.offsetWidth;
+            medal.style.animation = 'zoomIn 0.5s 3';
+        }
+        
+        // Создание сообщения
+        function createColoredMessage(text) {
+            const message = document.createElement('div');
+            message.className = 'message';
+            message.textContent = text;
+            document.body.appendChild(message);
+            
+            setTimeout(() => {
+                message.remove();
+            }, 3000);
+        }
+        
+        // Конец игры
+        function endGame(win) {
+            gameActive = false;
+            clearInterval(gameInterval);
+            
+            // Обновляем статистику игрока
+            if (currentPlayer) {
+                updatePlayerStats(score);
+            }
+            
+            if (win) {
+                createColoredMessage('VICTORY');
+                createFireworks();
+                setTimeout(resetGame, 6000);
+            } else {
+                createColoredMessage('LOSE');
+                createSkulls();
+                setTimeout(resetGame, 6000);
+            }
+        }
+        
+        // Создание фейерверков
+        function createFireworks() {
+            const fireworksCount = 20;
+            const colorsArray = Object.values(allColors).map(c => c.color);
+            
+            for (let i = 0; i < fireworksCount; i++) {
+                setTimeout(() => {
+                    const firework = document.createElement('div');
+                    firework.className = 'firework';
+                    firework.style.left = `${Math.random() * 100}%`;
+                    firework.style.top = `${Math.random() * 100}%`;
+                    firework.style.backgroundColor = colorsArray[Math.floor(Math.random() * colorsArray.length)];
+                    document.body.appendChild(firework);
+                    
+                    setTimeout(() => {
+                        firework.remove();
+                    }, 1000);
+                }, i * 300);
+            }
+        }
+        
+        // Создание черепов
+        function createSkulls() {
+            const skullsCount = 15;
+            
+            for (let i = 0; i < skullsCount; i++) {
+                setTimeout(() => {
+                    const skull = document.createElement('div');
+                    skull.className = 'skull';
+                    skull.style.left = `${Math.random() * 100}%`;
+                    skull.style.animationDuration = `${2 + Math.random() * 1}s`;
+                    document.body.appendChild(skull);
+                    
+                    setTimeout(() => {
+                        const explosion = document.createElement('div');
+                        explosion.className = 'explosion';
+                        explosion.style.left = skull.style.left;
+                        explosion.style.top = `calc(100vh - 50px)`;
+                        document.body.appendChild(explosion);
+                        
+                        skull.remove();
+                        
+                        setTimeout(() => {
+                            explosion.remove();
+                        }, 400);
+                    }, 2000 + Math.random() * 1000);
+                }, i * 200);
+            }
+        }
+        
+        // Сброс игры
+        function resetGame() {
+            title.textContent = 'COLORS';
+            title.classList.add('shaking');
+            colorInterval = setInterval(animateTitleColors, 1000);
+            
+            mainMenu.style.display = 'block';
+            timer.textContent = '5.0';
+            ranking.style.display = 'none';
+            
+            createColorBoxes();
+        }
+        
+        // Инициализация игры
+        function init() {
+            createStars();
+            animateStars();
+            createColorBoxes();
+            
+            colorInterval = setInterval(animateTitleColors, 1000);
+            
+            // Обработчики событий
+            newPlayerBtn.addEventListener('click', () => {
+                newPlayerBtn.style.display = 'none';
+                playerInput.style.display = 'block';
+                playerNameInput.focus();
+            });
+            
+            savePlayerBtn.addEventListener('click', () => {
+                const name = playerNameInput.value.trim();
+                if (validatePlayerName(name)) {
+                    let player = findPlayerByName(name);
+                    if (!player) {
+                        player = addNewPlayer(name);
+                    }
+                    currentPlayer = player;
+                    playerInput.style.display = 'none';
+                    mainMenu.style.display = 'block';
+                    playerNameInput.value = '';
+                } else {
+                    alert('Введите корректное имя (до 6 символов, без специальных символов)');
+                }
+            });
+            
+            cancelPlayerBtn.addEventListener('click', () => {
+                playerInput.style.display = 'none';
+                newPlayerBtn.style.display = 'block';
+                playerNameInput.value = '';
+            });
+            
+            startGameBtn.addEventListener('click', startGame);
+            
+            showRatingBtn.addEventListener('click', showRating);
+            
+            changePlayerBtn.addEventListener('click', () => {
+                mainMenu.style.display = 'none';
+                newPlayerBtn.style.display = 'block';
+                currentPlayer = null;
+            });
+            
+            closeRatingBtn.addEventListener('click', () => {
+                ratingWindow.style.display = 'none';
+            });
+            
+            document.addEventListener('touchstart', function() {}, {passive: true});
+            document.addEventListener('touchmove', function(e) { e.preventDefault(); }, {passive: false});
+        }
+        
+        // Запуск игры
+        init();
+    </script>
+</body>
+</html>
