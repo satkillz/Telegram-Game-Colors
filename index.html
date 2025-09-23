@@ -423,7 +423,7 @@
             pointer-events: none;
             animation: fall 2s linear forwards;
             z-index: 5;
-        }
+        />
         
         @keyframes fall {
             0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
@@ -537,6 +537,9 @@
             yellow: {color: '#f1c40f', name: 'YELLOW'}
         };
         
+        // Массив названий цветов для случайного выбора
+        const colorWords = ['RED', 'GREEN', 'BLUE', 'YELLOW', 'PURPLE', 'ORANGE'];
+        
         let allColors = {...baseColors};
         let colorNames = Object.keys(baseColors);
         let currentColor = '';
@@ -572,6 +575,11 @@
         const scoreDisplay = document.getElementById('score');
         const ranking = document.getElementById('ranking');
         const rankDisplay = document.getElementById('rank');
+        
+        // Функция для получения названия цвета из hex-кода
+        function getColorNameFromHex(hexCode) {
+            return Object.keys(allColors).find(color => allColors[color].color === hexCode);
+        }
         
         // Сохранение базы данных игроков
         function savePlayersDB() {
@@ -828,12 +836,28 @@
         
         // Следующий раунд
         function nextRound() {
-            const randomIndex = Math.floor(Math.random() * colorNames.length);
-            currentColor = colorNames[randomIndex];
-            
-            const colorData = allColors[currentColor];
-            title.textContent = colorData.name;
-            title.style.color = colorData.color;
+            // До 5 уровня - обычный режим
+            if (score < 5) {
+                const randomIndex = Math.floor(Math.random() * colorNames.length);
+                currentColor = colorNames[randomIndex];
+                const colorData = allColors[currentColor];
+                
+                title.textContent = colorData.name;
+                title.style.color = colorData.color;
+            } 
+            // После 5 уровня - режим запутывания
+            else {
+                // Выбираем случайный цвет для текста (это и будет загаданный цвет)
+                const randomColorIndex = Math.floor(Math.random() * colorNames.length);
+                currentColor = colorNames[randomColorIndex];
+                const colorData = allColors[currentColor];
+                
+                // Выбираем случайное слово (может не совпадать с цветом)
+                const randomWord = colorWords[Math.floor(Math.random() * colorWords.length)];
+                
+                title.textContent = randomWord;
+                title.style.color = colorData.color;
+            }
             
             createColorBoxes();
             
@@ -861,7 +885,9 @@
             
             animateBoxClick(e.target);
             
+            // Правильный ответ всегда = currentColor
             if (selectedColor === currentColor) {
+                // Правильный ответ
                 score++;
                 updateScore();
                 updateRanking();
@@ -884,6 +910,7 @@
                     nextRound();
                 }
             } else {
+                // Неправильный ответ
                 endGame(false);
             }
         }
